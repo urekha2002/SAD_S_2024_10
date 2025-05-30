@@ -1,31 +1,62 @@
 package SOLID;
 
+import java.util.HashMap;
+import java.util.Map;
+
+
 public class OCP_01 {
 
-    /*
-     * TASK:
-     * How to add a new discount type (customerType) without
-     * violating OCP (Open/Closed Principle)?
-     */
-    
-    public static class DiscountCalculator {
-        public double calculateDiscount(String customerType, double amount) {
-            if (customerType.equals("Regular")) {
-                return amount * 0.1;
-            }
-            else if (customerType.equals("Premium")) {
-                return amount * 0.2;
-            }
+    public interface DiscountStrategy {
+        double calculate(double amount);
+    }
+
+    public static class RegularDiscount implements DiscountStrategy {
+        public double calculate(double amount) {
+            return amount * 0.1;
+        }
+    }
+
+    public static class PremiumDiscount implements DiscountStrategy {
+        public double calculate(double amount) {
+            return amount * 0.2;
+        }
+    }
+
+    public static class NoDiscount implements DiscountStrategy {
+        public double calculate(double amount) {
             return 0.0;
         }
     }
 
+    public static class DiscountCalculator {
+        private final Map<String, DiscountStrategy> strategies = new HashMap<>();
+
+        public DiscountCalculator() {
+            strategies.put("Regular", new RegularDiscount());
+            strategies.put("Premium", new PremiumDiscount());
+            strategies.put("None", new NoDiscount());
+        }
+
+        public double calculateDiscount(String customerType, double amount) {
+            DiscountStrategy strategy = strategies.getOrDefault(customerType, new NoDiscount());
+            return strategy.calculate(amount);
+        }
+
+       
+        public void addStrategy(String customerType, DiscountStrategy strategy) {
+            strategies.put(customerType, strategy);
+        }
+    }
+
+   
     public static void main(String[] args) {
         DiscountCalculator calculator = new DiscountCalculator();
-        double regularDiscount = calculator.calculateDiscount("Regular", 100.0);
-        double premiumDiscount = calculator.calculateDiscount("Premium", 100.0);
+        double regular = calculator.calculateDiscount("Regular", 100.0);
+        double premium = calculator.calculateDiscount("Premium", 100.0);
+        double unknown = calculator.calculateDiscount("VIP", 100.0);
 
-        System.out.println("Regular Discount: " + regularDiscount);
-        System.out.println("Premium Discount: " + premiumDiscount);
+        System.out.println("Regular Discount: " + regular);
+        System.out.println("Premium Discount: " + premium);
+        System.out.println("Unknown Type Discount (should be 0): " + unknown);
     }
 }
